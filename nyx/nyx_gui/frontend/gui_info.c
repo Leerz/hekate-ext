@@ -416,13 +416,13 @@ hw_info_t *hw_info = NULL;
 #define WAFER_20NM_X_MIN  -9
 #define WAFER_20NM_X_MAX  15
 #define WAFER_20NM_Y_MIN   1
-#define WAFER_20NM_Y_MAX  24
+#define WAFER_20NM_Y_MAX  25
 
 // Limits validated based on known samples.
 #define WAFER_16NM_X_MIN -11
 #define WAFER_16NM_X_MAX  17
 #define WAFER_16NM_Y_MIN   0
-#define WAFER_16NM_Y_MAX  27
+#define WAFER_16NM_Y_MAX  28
 
 void _hw_info_wafer(int die_x, int die_y)
 {
@@ -441,7 +441,7 @@ void _hw_info_wafer(int die_x, int die_y)
 	else
 	{
 		if (die_x < WAFER_20NM_X_MIN || die_x > WAFER_20NM_X_MAX ||
-			die_y < 0                || die_y > WAFER_20NM_Y_MAX)
+			die_y < WAFER_20NM_Y_MIN || die_y > WAFER_20NM_Y_MAX)
 			die_x = WAFER_20NM_X_MIN - 1;
 
 		die_x   += -WAFER_20NM_X_MIN;
