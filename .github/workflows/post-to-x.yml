@@ -24,7 +24,7 @@ on:
 
 jobs:
   post-to-x:
-    uses: sthetix/HATS/.github/workflows/post-to-x-reusable.yml@main
+    uses: ./.github/workflows/post-to-x-reusable.yml@
     with:
       repo_name: ${{ github.repository }}
       release_tag: ${{ inputs.release_tag || github.event.release.tag_name }}
