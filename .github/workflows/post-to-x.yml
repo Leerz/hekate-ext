@@ -1,10 +1,3 @@
-# Copy this to your other repos' .github/workflows/ directory
-# You MUST add these secrets to each repo:
-# - X_API_KEY
-# - X_API_KEY_SECRET
-# - X_ACCESS_TOKEN
-# - X_ACCESS_TOKEN_SECRET
-
 name: Post Release to X
 
 on:
@@ -22,16 +15,98 @@ on:
         description: 'Release notes'
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   post-to-x:
-    uses: ./.github/workflows/post-to-x-reusable.yml@
-    with:
-      repo_name: ${{ github.repository }}
-      release_tag: ${{ inputs.release_tag || github.event.release.tag_name }}
-      release_title: ${{ inputs.release_title || github.event.release.name }}
-      release_notes: ${{ inputs.release_notes || github.event.release.body }}
-    secrets:
-      X_API_KEY: ${{ secrets.X_API_KEY }}
-      X_API_KEY_SECRET: ${{ secrets.X_API_KEY_SECRET }}
-      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
-      X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post to X
+        run: |
+          REPO="${{ github.repository }}"
+          TITLE="${{ inputs.release_title || github.event.release.name }}"
+          NOTES="${{ inputs.release_notes || github.event.release.body }}"
+          TAG="${{ inputs.release_tag || github.event.release.tag_name }}"
+          URL="https://github.com/$REPO/releases/tag/$TAG"
+
+          echo "Posting to X.com..."
+
+          pip install requests-oauthlib
+
+          python3 << 'EOF'
+          import os
+          import re
+          from requests_oauthlib import OAuth1Session
+
+          notes = os.environ['NOTES']
+          title = os.environ['TITLE']
+          url = os.environ['URL']
+
+          def extract_version_updates(notes):
+              pattern = r'\*\*([^*]+):\*\s*\d+[\w.]*\s*->\s*\*\*(\d+[\w.]*)\*\*'
+              matches = re.findall(pattern, notes)
+              if not matches:
+                  pattern = r'\*\*([^*]+):\*\*.*?->\s*\*\*(\d+[\w.]*)\*\*'
+                  matches = re.findall(pattern, notes, re.DOTALL)
+              return matches
+
+          def extract_supported_fw(notes):
+              match = re.search(r'\*\*Supported Firmware:\*\*\s*([^*\n]+)', notes)
+              if match:
+                  return match.group(1).strip()
+              return ""
+
+          updates = extract_version_updates(notes)
+          fw = extract_supported_fw(notes)
+
+          tweet_lines = [f"New hekate-ext release: {title}"]
+
+          if updates:
+              summary_parts = []
+              for name, ver in updates[:5]:
+                  short_name = name.replace(' English (Unofficial)', '').replace(' (Unofficial)', '')
+                  summary_parts.append(f"{short_name}: {ver}")
+              if summary_parts:
+                  tweet_lines.append(" | ".join(summary_parts))
+
+          if fw:
+              tweet_lines.append(f"FW: {fw}")
+
+          tweet_lines.append(f"Details: {url}")
+
+          tweet_text = "\n\n".join(tweet_lines)
+
+          api_key = os.environ['X_API_KEY']
+          api_secret = os.environ['X_API_KEY_SECRET']
+          access_token = os.environ['X_ACCESS_TOKEN']
+          access_secret = os.environ['X_ACCESS_TOKEN_SECRET']
+
+          oauth = OAuth1Session(
+              client_key=api_key,
+              client_secret=api_secret,
+              resource_owner_key=access_token,
+              resource_owner_secret=access_secret
+          )
+
+          response = oauth.post(
+              "https://api.twitter.com/2/tweets",
+              json={"text": tweet_text}
+          )
+
+          if response.status_code != 201:
+              print(f"Error: {response.status_code}")
+              print(response.text)
+              exit(1)
+
+          print("Tweet posted successfully!")
+          print(f"Tweet URL: https://x.com/user/status/{response.json()['data']['id']}")
+          EOF
+        env:
+          NOTES: $NOTES
+          TITLE: $TITLE
+          URL: $URL
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_KEY_SECRET: ${{ secrets.X_API_KEY_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
