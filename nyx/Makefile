@@ -28,8 +28,9 @@ TRACK_LDFLAGS = $(BUILDDIR)/.ldflags
 
 # Main and graphics.
 OBJS =  start exception_handlers nyx heap gfx \
-		gui gui_info gui_tools gui_options gui_emmc_tools gui_emummc_tools gui_tools_partition_manager \
-		fe_emummc_tools fe_emmc_tools
+		gui gui_info gui_tools gui_options gui_emmc_tools gui_emummc_tools gui_tools_partition_manager gui_warmboot \
+		fe_emummc_tools fe_emmc_tools \
+		warmboot_tools
 
 # Hardware.
 OBJS += actmon bpmp ccplex clock di vic i2c irq timer \
@@ -73,7 +74,7 @@ CUSTOMDEFINES := -DNYX_LOAD_ADDR=$(NYX_LOAD_ADDR) -DNYX_MAGIC=$(NYX_MAGIC)
 CUSTOMDEFINES += -DNYX_VER_MJ=$(NYXVERSION_MAJOR) -DNYX_VER_MN=$(NYXVERSION_MINOR) -DNYX_VER_HF=$(NYXVERSION_HOTFX) -DNYX_VER_RL=$(NYXVERSION_REL)
 
 # BDK defines.
-CUSTOMDEFINES += -DBDK_MC_ENABLE_AHB_REDIRECT -DBDK_MINERVA_CFG_FROM_RAM -DBDK_HW_EXTRA_DEINIT -DBDK_SDMMC_EXTRA_PRINT
+CUSTOMDEFINES += -DBDK_MINERVA_CFG_FROM_RAM -DBDK_HW_EXTRA_DEINIT -DBDK_SDMMC_EXTRA_PRINT
 CUSTOMDEFINES += -DGFX_INC=$(GFX_INC) -DFFCFG_INC=$(FFCFG_INC)
 
 #CUSTOMDEFINES += -DDEBUG

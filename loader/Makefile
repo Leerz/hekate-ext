@@ -40,7 +40,7 @@ LDFLAGS = $(ARCH) -nostartfiles -lgcc -Wl,--nmagic,--gc-sections -Xlinker --defs
 
 .PHONY: all clean
 
-all: $(TARGET).bin
+all: $(TARGET).bin $(TOOLSLZ) $(TOOLSB2C)
 
 clean:
 	@rm -f payload_00.h

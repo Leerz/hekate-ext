@@ -89,13 +89,7 @@ u32 fuse_read_odm_keygen_rev()
 	return 0;
 }
 
-static bool _dramid_8gb =
-#if CONFIG_DRAM_8GB
-	true
-#else
-	false
-#endif
-;
+static bool _dramid_8gb = false;
 
 void fuse_force_8gb_dramid()
 {
